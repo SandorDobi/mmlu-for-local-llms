@@ -153,8 +153,20 @@ def main():
                     if detect_loop(resp_text):
                         tags.append("LOOP")
 
-                    # Truncated: response ends without punctuation/newline
-                    if resp_text and resp_text[-1] not in ".!?\n" and len(resp_text) > 200:
+                    # Truncated: response appears cut off mid-sentence.
+                    # A clean answer like "ANSWER: B" ending with a letter is NOT truncated.
+                    is_truncated = False
+                    if resp_text and len(resp_text) > 200:
+                        last = resp_text.rstrip()[-1]
+                        if last not in ".!?\n":
+                            # Check if it ends with a known answer pattern (not truncated)
+                            stripped = resp_text.rstrip()
+                            if not (stripped.endswith(tuple("ABCD")) and
+                                    ("ANSWER:" in stripped[-20:] or
+                                     stripped[-1] in "ABCD" and len(stripped) < 5)):
+                                # Ends mid-word or mid-sentence without an answer marker
+                                is_truncated = True
+                    if is_truncated:
                         tags.append("TRUNCATED")
 
                     tag_str = f" [{','.join(tags)}]" if tags else ""
