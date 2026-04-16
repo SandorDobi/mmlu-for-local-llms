@@ -49,26 +49,32 @@ def load_results(samples_dir):
     return results
 
 def detect_loop(resp, min_chunks=3, chunk_size=120):
-    """Detect if the model response has repetition loops."""
+    """Detect if the model response has repetition loops.
+
+    Distinguishes between genuine looping (model stuck repeating itself)
+    and normal repetition (quoting options, reusing formulas, enumerations).
+    """
     if len(resp) < chunk_size * min_chunks:
         return False
-    # Split response into chunks and look for repeated sequences
+    # Chunk-level repetition: identical 120-char blocks repeating 3+ times
     chunks = [resp[i:i+chunk_size] for i in range(0, len(resp), chunk_size)]
-    # Count how many times each chunk (or near-match) appears
     for i in range(len(chunks) - min_chunks):
         pattern = chunks[i]
         matches = sum(1 for c in chunks[i+1:] if c == pattern)
         if matches >= min_chunks:
             return True
-    # Also check for repeated phrases (3+ word sequences repeated 3+ times)
+    # Phrase-level repetition: only flag long phrases (12+ words) repeated
+    # many times (5+). Short 8-word phrases at count 3 are too aggressive --
+    # they trigger on normal reasoning (quoting options, reusing formulas,
+    # enumeration patterns like "Therefore, option X is the correct...").
     words = resp.split()
-    if len(words) < 20:
+    if len(words) < 30:
         return False
-    for span_len in [8, 12, 16]:
+    for span_len in [12, 16]:
         for i in range(len(words) - span_len):
             phrase = " ".join(words[i:i+span_len])
             count = resp.count(phrase)
-            if count >= 3:
+            if count >= 5:
                 return True
     return False
 
