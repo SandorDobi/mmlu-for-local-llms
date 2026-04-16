@@ -180,17 +180,71 @@ lm_eval run --config JANG_RGX_20/eval_config.yaml \
 
 ## Results Viewer (show_results.py)
 
-The `show_results.py` script reads the latest JSONL results and displays them.
+The `show_results.py` script reads JSONL results and displays a summary table with X/20 scores. It supports interactive model and run selection.
+
+### Usage
 
 ```bash
-# Summary only
+# Default: latest model, latest run
 python3 JANG_RGX_20/show_results.py
 
 # Per-sample detail
 python3 JANG_RGX_20/show_results.py --detail
 
-# Point to specific model directory
+# List all available models and runs
+python3 JANG_RGX_20/show_results.py --list
+
+# Interactively choose model
+python3 JANG_RGX_20/show_results.py --model
+
+# Interactively choose both model and result set
+python3 JANG_RGX_20/show_results.py --model --run
+
+# Point to specific model directory (legacy)
 python3 JANG_RGX_20/show_results.py /path/to/mmlu_results/model-name --detail
+```
+
+### Flags
+
+| Flag | Description |
+|---|---|
+| `-d`, `--detail` | Show per-sample detail with tags |
+| `--model` | Interactively choose model from list |
+| `--run` | Interactively choose result set (timestamp) within a model |
+| `--list` | List all models and runs, then exit |
+| `--latest` | Use latest run (default behavior) |
+| `-h`, `--help` | Show help |
+
+### Interactive selection
+
+`--model` shows a numbered list of models found in `mmlu_results/` and prompts for selection. Press Enter to use the latest.
+
+`--run` shows all timestamped result sets within the selected model. Each run is numbered with its timestamp and subject count. Press Enter or type `L` for the latest run. This lets you compare different runs (e.g. different `num_fewshot` values or config changes) against the same model.
+
+```
+$ python3 JANG_RGX_20/show_results.py --model --run
+
+Available models:
+  [1] JANGQ-AI__MiniMax-M2.7-JANG_3L
+  [2] KnucklesXBT__Qwen3.6-35B-A3B-mlx-8Bit
+
+Select model (number) or Enter for latest: 1
+
+Available result sets:
+  [1] 2026-04-16T09-06-14.718350  (10 subjects)
+  [2] 2026-04-16T09-29-38.353794  (10 subjects)
+  [3] 2026-04-16T15-27-03.624255  (10 subjects)
+  [L] Latest
+
+Select run (number/L) or Enter for latest: 2
+
+Model: JANGQ-AI__MiniMax-M2.7-JANG_3L
+Run:   2026-04-16T09-29-38.353794
+
+| Subject                |   Score | Accuracy |
+|------------------------|---------|----------|
+| Abstract Algebra       |   5/20  |      25% |
+| ...
 ```
 
 ### Tags in --detail mode
