@@ -125,8 +125,9 @@ def extract_base_url(config_text):
     return None
 
 
-def extract_configured_model(config_text):
-    """Extract the model name from config (handling comments)."""
+def extract_model_args(config_text):
+    """Extract all key-value pairs from the model_args section."""
+    args = {}
     in_model_args = False
     for line in config_text.split('\n'):
         stripped = line.strip()
@@ -135,17 +136,24 @@ def extract_configured_model(config_text):
             continue
         if in_model_args:
             if not line.startswith(' ') and not line.startswith('\t'):
-                in_model_args = False
+                break
+            if stripped.startswith('#') or not stripped:
                 continue
-            if stripped.startswith('model:') and not stripped.startswith('model_args:'):
-                val = stripped.split(':', 1)[1].strip()
+            # Parse "key: value"
+            if ':' in stripped:
+                key, val = stripped.split(':', 1)
+                key = key.strip()
+                val = val.strip()
+                # Skip comment-only lines
+                if not val or val.startswith('#'):
+                    continue
                 # Strip inline comment
                 if '#' in val:
                     val = val[:val.index('#')].strip()
                 val = val.strip('"').strip("'")
                 if val:
-                    return val
-    return None
+                    args[key] = val
+    return args
 
 
 def get_server_origin(base_url):
@@ -220,11 +228,14 @@ def print_usage():
     print("Otherwise interactively chooses from discovered configs.")
 
 
-def build_command(config_path, model_name):
-    """Build the lm_eval command string."""
-    # Use relative path if possible
+def build_command(config_path, model_name, model_args):
+    """Build the lm_eval command string with all model_args."""
     rel = os.path.relpath(config_path)
-    return f"lm_eval run --config {rel} --model_args \"model={model_name}\""
+    # Build model_args string: all args from config, with model overridden
+    args = dict(model_args)
+    args['model'] = model_name
+    args_str = ','.join(f'{k}={v}' for k, v in args.items())
+    return f"lm_eval run --config {rel} --model_args \"{args_str}\""
 
 
 def main():
@@ -290,7 +301,8 @@ def main():
     # Read config
     config_text = load_config(config_path)
     base_url = extract_base_url(config_text)
-    configured_model = extract_configured_model(config_text)
+    model_args = extract_model_args(config_text)
+    configured_model = model_args.get('model')
 
     if not base_url:
         print("ERROR: No base_url found in config.")
@@ -326,7 +338,7 @@ def main():
     print(f"\nModel: {model_name}")
 
     # Build command
-    cmd = build_command(config_path, model_name)
+    cmd = build_command(config_path, model_name, model_args)
 
     if do_dry:
         print(f"\n[DRY RUN] Would run:")
