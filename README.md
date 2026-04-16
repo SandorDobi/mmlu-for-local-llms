@@ -96,18 +96,32 @@ model_args:
 
 ### 3. Run the benchmark
 
-**Full MMLU (57 subjects, ~14,000 questions):**
+**Using run_benchmark.py (recommended):**
 ```bash
+# Interactive: pick config, pick model from server
+python3 run_benchmark.py
+
+# Specify config, show command (don't run)
+python3 run_benchmark.py JANG_RGX_20/eval_config.yaml --dry-run
+
+# Specify config, run directly
+python3 run_benchmark.py JANG_RGX_20/eval_config.yaml --run
+
+# List available configs
+python3 run_benchmark.py --list
+```
+
+The script queries the server's `/v1/models` endpoint and lets you pick from available models. If the server is unreachable, it falls back to the model configured in the YAML file.
+
+**Manual (direct lm_eval):**
+```bash
+# Full MMLU (57 subjects, ~14,000 questions)
 lm_eval run --config JANG_RGX/eval_config.yaml
-```
 
-**Focused subset (10 subjects x 20 questions):**
-```bash
+# Focused subset (10 subjects x 20 questions)
 lm_eval run --config JANG_RGX_20/eval_config.yaml
-```
 
-**Quick test (3 questions, single subject):**
-```bash
+# Quick test (3 questions, single subject)
 lm_eval run --config JANG_RGX_20/eval_config.yaml --limit 3 --tasks JANG_RGX_20_abstract_algebra
 ```
 
@@ -275,9 +289,59 @@ The focused subset covers 10 representative subjects:
 ## Adapting for Other Models
 
 1. Edit `model_args` in `eval_config.yaml` to point to your server
-2. Adjust `num_fewshot` (0 for no examples, 5 for standard MMLU)
-3. Adjust `max_tokens` in `_default_template.yaml` (lower = faster but more truncation)
-4. Adjust `num_concurrent` based on your server's capacity
+2. Or use `run_benchmark.py` to interactively select a model from the server
+3. Adjust `num_fewshot` (0 for no examples, 5 for standard MMLU)
+4. Adjust `max_tokens` in `_default_template.yaml` (lower = faster but more truncation)
+5. Adjust `num_concurrent` based on your server's capacity
+
+## Benchmark Runner (run_benchmark.py)
+
+Automates model discovery and benchmark execution against a local inference server.
+
+### How it works
+
+1. Reads any `eval_config.yaml`, extracts the `base_url`
+2. Queries `{server_origin}/v1/models` for available models
+3. If server responds: interactive menu to pick a model
+4. If server unreachable: warns user, falls back to the configured model
+5. Either prints the `lm_eval` command or runs it directly
+
+### Flags
+
+| Flag | Description |
+|---|---|
+| `--run` | Execute lm_eval directly as a subprocess |
+| `--dry-run` | Show what would be run, don't execute |
+| `--list` | List available configs and exit |
+| `-h`, `--help` | Show help |
+
+Without `--run`, the script prints the command and prompts "Run now? [y/N]". This gives you a chance to review before executing.
+
+### Example session
+
+```
+$ python3 run_benchmark.py JANG_RGX_20/eval_config.yaml --dry-run
+
+Config: JANG_RGX_20/eval_config.yaml
+Server: http://127.0.0.1:8080/v1/chat/completions
+Configured model: KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit
+
+Querying http://127.0.0.1:8080/v1/models ...
+Server responded with 4 model(s).
+  Available models (4):
+    [1] KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit <-- configured
+    [2] JANGQ-AI/MiniMax-M2.7-JANG_3L
+    [3] dealignai/MiniMax-M2.5-JANG_3L-CRACK
+    [4] hub/MiniMax-M2.5-JANG_3L-CRACK
+    [C] Use configured: KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit
+
+  Select model (number/C) or Enter for configured:
+
+Model: KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit
+
+[DRY RUN] Would run:
+  lm_eval run --config JANG_RGX_20/eval_config.yaml --model_args "model=KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit"
+```
 
 ## Regex Version History
 
