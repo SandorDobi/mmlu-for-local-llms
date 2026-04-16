@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_college_physics
+task_alias: "College Physics"
+dataset_name: college_physics

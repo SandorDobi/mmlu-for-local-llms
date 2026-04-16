@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_anatomy
+task_alias: "Anatomy"
+dataset_name: anatomy

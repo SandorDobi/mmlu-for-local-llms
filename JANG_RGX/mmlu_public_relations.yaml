@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: JANG_RGX_mmlu_public_relations
+dataset_name: public_relations

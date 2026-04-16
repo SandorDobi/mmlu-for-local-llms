@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_college_computer_science
+task_alias: "College CS"
+dataset_name: college_computer_science

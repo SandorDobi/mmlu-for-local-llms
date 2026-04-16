@@ -1,0 +1,20 @@
+group: JANG_RGX_20
+group_alias: MMLU-10x20 (JANG_RGX)
+task:
+  - JANG_RGX_20_abstract_algebra
+  - JANG_RGX_20_anatomy
+  - JANG_RGX_20_astronomy
+  - JANG_RGX_20_college_computer_science
+  - JANG_RGX_20_college_physics
+  - JANG_RGX_20_high_school_biology
+  - JANG_RGX_20_high_school_chemistry
+  - JANG_RGX_20_high_school_mathematics
+  - JANG_RGX_20_logical_fallacies
+  - JANG_RGX_20_world_religions
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+    filter_list: extract_answer
+metadata:
+  version: 3.0

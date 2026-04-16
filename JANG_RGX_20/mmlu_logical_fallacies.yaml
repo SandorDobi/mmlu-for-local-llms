@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_logical_fallacies
+task_alias: "Logical Fallacies"
+dataset_name: logical_fallacies

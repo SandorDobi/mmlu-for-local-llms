@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: JANG_RGX_mmlu_computer_security
+dataset_name: computer_security

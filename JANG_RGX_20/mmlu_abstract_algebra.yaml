@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_abstract_algebra
+task_alias: "Abstract Algebra"
+dataset_name: abstract_algebra

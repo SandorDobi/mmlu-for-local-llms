@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: JANG_RGX_mmlu_us_foreign_policy
+dataset_name: us_foreign_policy

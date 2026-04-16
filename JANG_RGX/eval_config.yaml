@@ -1,0 +1,104 @@
+# =============================================================================
+# JANG_RGX MMLU Evaluation Config
+# Model: JANGQ-AI/MiniMax-M2.7-JANG_3L (local server)
+# Usage: lm_eval run --config mmlu_custom/JANG_RGX/eval_config.yaml
+#         OR:  lm-eval run --config mmlu_custom/JANG_RGX/eval_config.yaml --limit 10
+# =============================================================================
+
+# --- Model ---
+# Backend type. "local-chat-completions" hits an OpenAI-compatible chat API.
+model: local-chat-completions
+
+# Model constructor arguments passed to the backend.
+model_args:
+  model: JANGQ-AI/MiniMax-M2.7-JANG_3L          # model identifier sent to the server
+  base_url: http://127.0.0.1:8080/v1/chat/completions  # full chat endpoint URL
+  num_concurrent: 2       # parallel requests (increase if server can handle it)
+  max_retries: 3          # retry count on transient errors
+  timeout: 600            # per-request timeout in seconds
+
+# --- Tasks ---
+# The JANG_RGX_mmlu group (57 subjects, 4 subgroups: stem/other/social_sciences/humanities)
+# Uses custom generative evaluation with regex answer extraction.
+tasks:
+  - JANG_RGX_mmlu
+
+# Path to custom task definitions (required for JANG_RGX_mmlu to be found)
+include_path: mmlu_custom/JANG_RGX
+
+# --- Generation ---
+# Override generation kwargs for all tasks (merged with per-task gen_kwargs)
+# gen_kwargs:
+#   max_tokens: 2048
+
+# --- Few-shot ---
+# Number of few-shot examples per task. null = use task default (0 for JANG_RGX)
+num_fewshot: 5
+
+# --- Chat Template ---
+# Apply the model's chat template to format messages properly
+apply_chat_template: true
+
+# System instruction prepended to every prompt (null = none)
+system_instruction: null
+
+# Whether to format few-shot examples as multi-turn conversation
+fewshot_as_multiturn: null
+
+# --- Batching ---
+# Batch size. API models default to 1; "auto" not supported for API models
+batch_size: 1
+
+# Max batch size when using batch_size: auto (not applicable here)
+max_batch_size: null
+
+# --- Sampling Limits ---
+# Limit number of examples per task (null = all examples, ~100-250 per subject)
+# Use --limit on CLI to override for quick test runs
+limit: null
+
+# Specific sample indices per task (dict: task_name -> [indices])
+samples: null
+
+# --- Output ---
+# Directory to save results and per-sample logs
+output_path: ./mmlu_results
+
+# Save all model inputs/outputs for post-hoc analysis (JSONL files)
+log_samples: true
+
+# Run model inference only, skip metric computation
+predict_only: false
+
+# --- Caching ---
+# Path to a response cache file (reuse previous model outputs)
+use_cache: null
+
+# Request cache settings (avoid re-sending identical requests)
+cache_requests: {}
+
+# --- Device ---
+# Device for local models (not applicable for API models)
+device: null
+
+# --- Reproducibility ---
+# Random seeds: [seed, numpy_seed, torch_seed, fewshot_seed]
+seed:
+  - 0
+  - 1234
+  - 1234
+  - 1234
+
+# --- Logging ---
+# Weights & Biases logging (disabled by default)
+wandb_args: {}
+
+# HuggingFace Hub logging (disabled by default)
+hf_hub_log_args: {}
+
+# Whether to trust remote code when loading models/datasets
+trust_remote_code: false
+
+# --- Metadata ---
+# Arbitrary metadata attached to results
+metadata: {}

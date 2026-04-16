@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_high_school_mathematics
+task_alias: "HS Mathematics"
+dataset_name: high_school_mathematics

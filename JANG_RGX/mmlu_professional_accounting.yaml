@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: JANG_RGX_mmlu_professional_accounting
+dataset_name: professional_accounting

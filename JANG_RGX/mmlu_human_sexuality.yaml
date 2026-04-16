@@ -1,0 +1,3 @@
+include: _default_template.yaml
+task: JANG_RGX_mmlu_human_sexuality
+dataset_name: human_sexuality

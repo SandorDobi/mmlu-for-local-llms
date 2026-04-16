@@ -1,0 +1,91 @@
+group: JANG_RGX_mmlu
+group_alias: MMLU (JANG_RGX)
+task:
+  - group: stem
+    task:
+      - JANG_RGX_mmlu_abstract_algebra
+      - JANG_RGX_mmlu_anatomy
+      - JANG_RGX_mmlu_astronomy
+      - JANG_RGX_mmlu_college_biology
+      - JANG_RGX_mmlu_college_chemistry
+      - JANG_RGX_mmlu_college_computer_science
+      - JANG_RGX_mmlu_college_mathematics
+      - JANG_RGX_mmlu_college_physics
+      - JANG_RGX_mmlu_computer_security
+      - JANG_RGX_mmlu_conceptual_physics
+      - JANG_RGX_mmlu_electrical_engineering
+      - JANG_RGX_mmlu_elementary_mathematics
+      - JANG_RGX_mmlu_high_school_biology
+      - JANG_RGX_mmlu_high_school_chemistry
+      - JANG_RGX_mmlu_high_school_computer_science
+      - JANG_RGX_mmlu_high_school_mathematics
+      - JANG_RGX_mmlu_high_school_physics
+      - JANG_RGX_mmlu_high_school_statistics
+      - JANG_RGX_mmlu_machine_learning
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+        filter_list: extract_answer
+  - group: other
+    task:
+      - JANG_RGX_mmlu_business_ethics
+      - JANG_RGX_mmlu_clinical_knowledge
+      - JANG_RGX_mmlu_college_medicine
+      - JANG_RGX_mmlu_global_facts
+      - JANG_RGX_mmlu_human_aging
+      - JANG_RGX_mmlu_management
+      - JANG_RGX_mmlu_marketing
+      - JANG_RGX_mmlu_medical_genetics
+      - JANG_RGX_mmlu_miscellaneous
+      - JANG_RGX_mmlu_nutrition
+      - JANG_RGX_mmlu_professional_accounting
+      - JANG_RGX_mmlu_professional_medicine
+      - JANG_RGX_mmlu_virology
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+        filter_list: extract_answer
+  - group: social_sciences
+    task:
+      - JANG_RGX_mmlu_econometrics
+      - JANG_RGX_mmlu_high_school_geography
+      - JANG_RGX_mmlu_high_school_government_and_politics
+      - JANG_RGX_mmlu_high_school_macroeconomics
+      - JANG_RGX_mmlu_high_school_microeconomics
+      - JANG_RGX_mmlu_high_school_psychology
+      - JANG_RGX_mmlu_human_sexuality
+      - JANG_RGX_mmlu_professional_psychology
+      - JANG_RGX_mmlu_public_relations
+      - JANG_RGX_mmlu_security_studies
+      - JANG_RGX_mmlu_sociology
+      - JANG_RGX_mmlu_us_foreign_policy
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+        filter_list: extract_answer
+  - group: humanities
+    task:
+      - JANG_RGX_mmlu_formal_logic
+      - JANG_RGX_mmlu_high_school_european_history
+      - JANG_RGX_mmlu_high_school_us_history
+      - JANG_RGX_mmlu_high_school_world_history
+      - JANG_RGX_mmlu_international_law
+      - JANG_RGX_mmlu_jurisprudence
+      - JANG_RGX_mmlu_logical_fallacies
+      - JANG_RGX_mmlu_moral_disputes
+      - JANG_RGX_mmlu_moral_scenarios
+      - JANG_RGX_mmlu_philosophy
+      - JANG_RGX_mmlu_prehistory
+      - JANG_RGX_mmlu_professional_law
+      - JANG_RGX_mmlu_world_religions
+    aggregate_metric_list:
+      - metric: exact_match
+        weight_by_size: true
+        filter_list: extract_answer
+aggregate_metric_list:
+  - aggregation: mean
+    metric: exact_match
+    weight_by_size: true
+    filter_list: extract_answer
+metadata:
+  version: 3.0

@@ -1,0 +1,4 @@
+include: _default_template.yaml
+task: JANG_RGX_20_astronomy
+task_alias: "Astronomy"
+dataset_name: astronomy

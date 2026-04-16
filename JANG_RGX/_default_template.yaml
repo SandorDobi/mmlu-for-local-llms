@@ -1,0 +1,25 @@
+dataset_path: cais/mmlu
+test_split: test
+fewshot_split: dev
+fewshot_config:
+  sampler: first_n
+output_type: generate_until
+doc_to_text: "Think step by step, then end with exactly this line: ANSWER: X (where X is A, B, C, or D)\n\n{{question.strip()}}\nA. {{choices[0]}}\nB. {{choices[1]}}\nC. {{choices[2]}}\nD. {{choices[3]}}"
+doc_to_target: "{{['A', 'B', 'C', 'D'][answer]}}"
+generation_kwargs:
+  until:
+    - "</s>"
+  max_tokens: 4096
+metric_list:
+  - metric: exact_match
+    aggregation: mean
+    higher_is_better: true
+filter_list:
+  - name: "extract_answer"
+    filter:
+      - function: "regex"
+        regex_pattern: "(?:ANSWER:\\s*)([A-D])|(?:answer\\s+is\\s+)([A-D])|(?:Answer:\\s*)([A-D])|(?:correct\\s+answer\\s+is\\s+)([A-D])|\\*\\*([A-D])\\.\\s|\\*\\*([A-D])\\*\\*|^([A-D])\\.?$|^([A-D])\\.\\s"
+        fallback: "[invalid]"
+      - function: take_first
+metadata:
+  version: 3.0

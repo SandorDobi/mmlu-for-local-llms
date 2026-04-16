@@ -1,0 +1,36 @@
+# =============================================================================
+# JANG_RGX_20 - MMLU 10 subjects x 20 questions
+# Model: JANGQ-AI/MiniMax-M2.7-JANG_3L (local server)
+# Usage: lm_eval run --config mmlu_custom/JANG_RGX_20/eval_config.yaml
+# Results: python3 mmlu_custom/JANG_RGX_20/show_results.py
+# =============================================================================
+
+model: local-chat-completions
+model_args:
+  model: JANGQ-AI/MiniMax-M2.7-JANG_3L
+  base_url: http://127.0.0.1:8080/v1/chat/completions
+  num_concurrent: 4
+  max_retries: 3
+  timeout: 600
+
+tasks:
+  - JANG_RGX_20
+
+include_path: mmlu_custom/JANG_RGX_20
+
+num_fewshot: 2
+apply_chat_template: true
+batch_size: 1
+limit: 20
+
+output_path: ./mmlu_results
+log_samples: true
+predict_only: false
+cache_requests: {}
+seed:
+  - 0
+  - 1234
+  - 1234
+  - 1234
+trust_remote_code: false
+metadata: {}
