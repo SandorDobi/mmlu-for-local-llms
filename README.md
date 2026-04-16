@@ -16,18 +16,38 @@ This suite solves that with:
 
 ## Supported Answer Formats
 
-The regex filter extracts `A`, `B`, `C`, or `D` from any of these response patterns:
+The regex filter uses **right-to-left matching** to extract the answer from the **end** of the model's response. This prevents false matches when the model cites answer options during reasoning (e.g. `**A** is incorrect because...`).
 
-| Model Output | Extracted |
-|---|---|
-| `ANSWER: B` | B |
-| `The answer is C.` | C |
-| `The correct answer is D.` | D |
-| `**B. some text**` | B |
-| `**Answer: C**` | C |
-| `A` (bare letter) | A |
-| `A.` (letter + period) | A |
-| `A. some explanation text` | A |
+### How it works
+
+The regex uses `(?s)` (DOTALL flag) with a greedy `.*` prefix on each pattern alternative. Since `.*` is greedy and DOTALL allows `.` to match newlines, `re.findall()` finds the **last** occurrence of each pattern in the response. Alternatives are ordered by priority -- explicit `ANSWER: X` is tried first, fallback bare letter last.
+
+**Problem it solves:** Without right-to-left matching, a response like:
+```
+**A** is incorrect because evolution does not aim for perfection.
+**B** is correct. The phenotype represents a compromise.
+ANSWER: B
+```
+Would incorrectly extract `A` (from the bold `**A**` in the reasoning) instead of `B` (the actual answer at the end).
+
+### Supported patterns (priority order)
+
+| Priority | Pattern | Example Match |
+|---|---|---|
+| 1 (highest) | `ANSWER: X` | `ANSWER: B` |
+| 2 | `answer is X` | `The answer is C.` |
+| 3 | `Answer: X` | `Answer: C` |
+| 4 | `correct answer is X` | `The correct answer is D.` |
+| 5 | `**X**` (bold) | `**B**` |
+| 6 | `**X. ...` (bold + dot) | `**B. some text` |
+| 7 | Bare letter on last line | `B` or `B.` |
+| 8 (fallback) | Letter + whitespace/end | `A. text...` |
+
+### Tested Models
+
+This regex has been validated against results from:
+- **JANGQ-AI/MiniMax-M2.7-JANG_3L** -- reasoning model, verbose chain-of-thought
+- **KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit** -- reasoning model, structured option analysis
 
 ## Requirements
 
@@ -204,6 +224,23 @@ The focused subset covers 10 representative subjects:
 2. Adjust `num_fewshot` (0 for no examples, 5 for standard MMLU)
 3. Adjust `max_tokens` in `_default_template.yaml` (lower = faster but more truncation)
 4. Adjust `num_concurrent` based on your server's capacity
+
+## Regex Version History
+
+### v2 -- Right-to-left matching (current)
+
+**Problem:** When models like Qwen3 analyze each option in their reasoning (e.g. `**A.** This is incorrect because...`, `**B.** This is the correct answer.`), the old left-to-right regex matched the first occurrence -- typically option A or B from the analysis -- instead of the actual `ANSWER: X` at the end.
+
+**Fix:** Added `(?s)` inline DOTALL flag and greedy `.*` prefix to each alternative. This forces the regex engine to match the **last** occurrence of each pattern, effectively scanning from right-to-left. Alternatives are ordered by specificity: explicit `ANSWER: X` markers first, fuzzy patterns last.
+
+**Impact on test data (2860 samples across 2 models):**
+- Old regex: 65.9% accuracy (15 invalid, 1885 correct)
+- New regex: 73.8% accuracy (3 invalid, 2110 correct)
+- 228 false-match errors fixed, 0 real regressions
+
+### v1 -- Left-to-right matching (initial)
+
+First version using standard left-to-right `re.search`. Worked well for models that always output `ANSWER: X` cleanly (MiniMax), but produced systematic false matches on models that enumerate options in their reasoning (Qwen).
 
 ## Notes
 

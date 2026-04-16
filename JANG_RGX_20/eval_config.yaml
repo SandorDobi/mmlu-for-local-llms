@@ -7,11 +7,15 @@
 
 model: local-chat-completions
 model_args:
-  model: JANGQ-AI/MiniMax-M2.7-JANG_3L
+  # model: JANGQ-AI/MiniMax-M2.7-JANG_3L
+  model: KnucklesXBT/Qwen3.6-35B-A3B-mlx-8Bit
   base_url: http://127.0.0.1:8080/v1/chat/completions
   num_concurrent: 4
   max_retries: 3
   timeout: 600
+  max_length: 4096
+  enable_thinking: false
+  think_end_token: </think>
 
 tasks:
   - JANG_RGX_20
@@ -34,3 +38,4 @@ seed:
   - 1234
 trust_remote_code: false
 metadata: {}
+

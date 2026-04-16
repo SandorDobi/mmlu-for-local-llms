@@ -9,7 +9,7 @@ doc_to_target: "{{['A', 'B', 'C', 'D'][answer]}}"
 generation_kwargs:
   until:
     - "</s>"
-  max_tokens: 4096
+  max_tokens: 8192
 metric_list:
   - metric: exact_match
     aggregation: mean
@@ -17,11 +17,13 @@ metric_list:
 filter_list:
   - name: "extract_answer"
     filter:
-      # Catch all common answer formats:
-      # "ANSWER: X", "answer is X", "Answer: X", "correct answer is X",
-      # "**X**", "**X. ...", bare letter "A", "A.", "A. text..."
+      # Right-to-left matching: uses (?s) DOTALL + greedy .* prefix to find
+      # the LAST occurrence of each pattern, avoiding false matches when the
+      # model cites answer options in its reasoning (e.g. "**A** is incorrect...").
+      # Priority order: ANSWER: X > "answer is X" > "Answer: X" > "correct answer is X"
+      # > **X** bold > **X. bold > bare letter on last line > fallback bare letter.
       - function: "regex"
-        regex_pattern: "(?:ANSWER:\\s*)([A-D])|(?:answer\\s+is\\s+)([A-D])|(?:Answer:\\s*)([A-D])|(?:correct\\s+answer\\s+is\\s+)([A-D])|\\*\\*([A-D])\\.\\s|\\*\\*([A-D])\\*\\*|^([A-D])\\.?$|^([A-D])\\.\\s"
+        regex_pattern: "(?s).*ANSWER:\\s*([A-D])|.*answer\\s+is\\s+([A-D])|.*Answer:\\s*([A-D])|.*correct\\s+answer\\s+is\\s+([A-D])|.*\\*\\*([A-D])\\*\\*|.*\\*\\*([A-D])\\.\\s|.*\\n([A-D])\\.?\\s*$|([A-D])\\.?(?:\\s|$)"
         fallback: "[invalid]"
       - function: take_first
 metadata:
