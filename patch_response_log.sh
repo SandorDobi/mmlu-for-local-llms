@@ -1,18 +1,23 @@
 #!/bin/bash
 # =============================================================================
-# patch_response_log.sh - Install or revert the JANG request/response logging
-# patch for lm-eval's local-chat-completions backend.
+# patch_response_log.sh - Install or revert the JANG patch suite
+# for lm-eval's local-chat-completions backend.
 #
 # Usage:
-#   ./patch_response_log.sh          # Apply patch
+#   ./patch_response_log.sh          # Apply all patches
 #   ./patch_response_log.sh revert   # Revert to original
 #
-# The patch logs:
-#   - REQUEST payload to /tmp/lm_eval_requests.jsonl (including enable_thinking)
-#   - RESPONSE payload to /tmp/lm_eval_responses.jsonl (full raw server response)
+# Patches applied:
+#   1. __init__: saves extra model_args (enable_thinking, etc.) to self._jang_extra
+#   2. _create_payload: merges self._jang_extra into API request + logs request payload
+#   3. parse_generations: logs full raw server response
 #
-# Change paths with env vars:
-#   JANG_REQUEST_LOG=/path/to/req.jsonl JANG_RESPONSE_LOG=/path/to/resp.jsonl lm_eval ...
+# Log files:
+#   /tmp/lm_eval_requests.jsonl  - full request payloads (check if enable_thinking sent)
+#   /tmp/lm_eval_responses.jsonl - full raw responses (check reasoning_content)
+#
+# Custom paths:
+#   JANG_REQUEST_LOG=/path/req.jsonl JANG_RESPONSE_LOG=/path/resp.jsonl lm_eval ...
 # =============================================================================
 
 OPENAI_FILE="/Users/draco/.local/pipx/venvs/lm-eval/lib/python3.14/site-packages/lm_eval/models/openai_completions.py"
@@ -47,7 +52,40 @@ filepath = "/Users/draco/.local/pipx/venvs/lm-eval/lib/python3.14/site-packages/
 with open(filepath, "r") as f:
     content = f.read()
 
-# --- Patch 1: _create_payload (log request) ---
+# --- Patch 1: __init__ (save extra model_args) ---
+old_init = """        super().__init__(
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            tokenized_requests=tokenized_requests,
+            verify_certificate=verify_certificate,
+            ca_cert_path=ca_cert_path,
+            auth_token=auth_token,
+            **kwargs,
+        )
+        if self._batch_size > 1:"""
+
+new_init = """        super().__init__(
+            base_url=base_url,
+            tokenizer_backend=tokenizer_backend,
+            tokenized_requests=tokenized_requests,
+            verify_certificate=verify_certificate,
+            ca_cert_path=ca_cert_path,
+            auth_token=auth_token,
+            **kwargs,
+        )
+        # >>> JANG_PATCH: Forward extra model_args to API requests >>>
+        self._jang_extra = kwargs
+        # <<< JANG_PATCH <<<
+        if self._batch_size > 1:"""
+
+if old_init in content:
+    content = content.replace(old_init, new_init)
+    print("PATCH 1/3: __init__ saving extra model_args")
+else:
+    print("ERROR: Could not find __init__ block")
+    import sys; sys.exit(1)
+
+# --- Patch 2: _create_payload (merge extra + log request) ---
 old_payload = """        return {
             "messages": messages,
             "model": self.model,
@@ -66,6 +104,7 @@ new_payload = """        _jang_payload = {
             "stop": stop[:4],
             "seed": seed,
             **gen_kwargs,
+            **self._jang_extra,
         }
         # >>> JANG_PATCH: Log request payload >>>
         import json as _jang_json, datetime as _jang_dt, os as _jang_os
@@ -83,12 +122,12 @@ new_payload = """        _jang_payload = {
 
 if old_payload in content:
     content = content.replace(old_payload, new_payload)
-    print("PATCH 1/2: _create_payload request logging applied")
+    print("PATCH 2/3: _create_payload merging extra model_args + logging request")
 else:
     print("ERROR: Could not find _create_payload return block")
     import sys; sys.exit(1)
 
-# --- Patch 2: parse_generations (log response, LocalChatCompletion only) ---
+# --- Patch 3: parse_generations (log response, LocalChatCompletion only) ---
 old_parse = """    @staticmethod
     def parse_generations(outputs: Union[Dict, List[Dict]], **kwargs) -> List[str]:
         res = []"""
@@ -112,7 +151,7 @@ new_parse = """    @staticmethod
 first_pos = content.index(old_parse)
 second_pos = content.index(old_parse, first_pos + len(old_parse))
 content = content[:second_pos] + new_parse + content[second_pos + len(old_parse):]
-print("PATCH 2/2: parse_generations response logging applied")
+print("PATCH 3/3: parse_generations response logging applied")
 
 with open(filepath, "w") as f:
     f.write(content)
