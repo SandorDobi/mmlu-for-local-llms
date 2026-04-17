@@ -9,6 +9,9 @@ doc_to_target: "{{['A', 'B', 'C', 'D'][answer]}}"
 generation_kwargs:
   until:
     - "</s>"
+    - "<|im_end|>"
+    - "[e~["
+    - ""
   max_tokens: 8192
 metric_list:
   - metric: exact_match
