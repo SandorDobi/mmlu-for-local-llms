@@ -7,8 +7,8 @@
 #   ./patch_response_log.sh          # Apply patch
 #   ./patch_response_log.sh revert   # Revert to original
 #
-# The patch logs raw API responses to /tmp/lm_eval_responses.jsonl
-# Each line contains: {"ts", "model", "choices": [{"content", "reasoning_content", "finish_reason"}]}
+# The patch logs the FULL raw API response to /tmp/lm_eval_responses.jsonl
+# Each line contains: {"ts": "...", "raw": {entire server response including reasoning_content, usage, etc.}}
 #
 # Change log path: JANG_RESPONSE_LOG=/path/to/log.jsonl ./patch_response_log.sh
 # =============================================================================
@@ -55,20 +55,11 @@ new = '''    @staticmethod
         import json as _jang_json, datetime as _jang_dt, os as _jang_os
         _jang_log = _jang_os.environ.get("JANG_RESPONSE_LOG", "/tmp/lm_eval_responses.jsonl")
         try:
-            _jang_entry = {
-                "ts": _jang_dt.datetime.now().isoformat(),
-                "model": outputs.get("model", "") if isinstance(outputs, dict) else "",
-                "choices": [
-                    {
-                        "content": c.get("message", {}).get("content"),
-                        "reasoning_content": c.get("message", {}).get("reasoning_content"),
-                        "finish_reason": c.get("finish_reason"),
-                    }
-                    for c in (outputs.get("choices", []) if isinstance(outputs, dict) else [])
-                ],
-            }
             with open(_jang_log, "a") as _jang_f:
-                _jang_f.write(_jang_json.dumps(_jang_entry, ensure_ascii=False) + "\\n")
+                _jang_f.write(_jang_json.dumps({
+                    "ts": _jang_dt.datetime.now().isoformat(),
+                    "raw": outputs,
+                }, ensure_ascii=False, default=str) + "\\n")
         except Exception:
             pass
         # <<< JANG_PATCH <<<
