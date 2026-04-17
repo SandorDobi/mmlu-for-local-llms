@@ -15,7 +15,7 @@ model_args:
   timeout: 600
   max_length: 32768
   enable_thinking: true
-  think_end_token: ""</think>
+  think_end_token: ""
 
 tasks:
   - JANG_RGX_20
