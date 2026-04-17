@@ -12,6 +12,7 @@ generation_kwargs:
     - "<|im_end|>"
     - "[e~["
     - ""
+    - ""
   max_tokens: 4096
 metric_list:
   - metric: exact_match

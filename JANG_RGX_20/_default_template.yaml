@@ -12,7 +12,8 @@ generation_kwargs:
     - "<|im_end|>"
     - "[e~["
     - ""
-  max_tokens: 8192
+    - ""
+  max_tokens: 32768
 metric_list:
   - metric: exact_match
     aggregation: mean

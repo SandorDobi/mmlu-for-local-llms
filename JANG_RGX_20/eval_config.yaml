@@ -13,9 +13,9 @@ model_args:
   num_concurrent: 4
   max_retries: 3
   timeout: 600
-  max_length: 4096
-  enable_thinking: false
-  think_end_token: </think>
+  max_length: 32768
+  enable_thinking: true
+  think_end_token: ""</think>
 
 tasks:
   - JANG_RGX_20
